@@ -1,30 +1,27 @@
 import express from 'express'
+import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-const app = express()
-const PORT = process.env.PORT || 3000; 
+const app = express();
+const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Serve static files from "public" folder
 app.use(express.static(join(__dirname, 'public')));
 
-
+// Root route
 app.get('/', (req, res) => {
-  res.send('Hello Express from Render 😍😍😍. <a href="barry">barry</a>')
-})
+  res.send('Hello Express from Render 😍😍😍. <a href="spencer">spencer</a>');
+});
 
-// endpoints...middlewares...apis? 
-// send an html file
+// /spencer route sends the spencer.html file
+app.get('/spencer', (req, res) => {
+  res.sendFile(join(__dirname, 'public', 'spencer.html'));
+});
 
-app.get('/barry', (req, res) => {
-  // res.send('barry. <a href="/">home</a>')
-  res.sendFile(join(__dirname, 'public', 'barry.html')) 
-
-})
-
-
-
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
-})
+  console.log(`Example app listening on port ${PORT}`);
+});
