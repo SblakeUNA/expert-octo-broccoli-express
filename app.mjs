@@ -1,5 +1,4 @@
 import express from 'express'
-import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -20,6 +19,12 @@ app.get('/', (req, res) => {
 app.get('/spencer', (req, res) => {
   res.sendFile(join(__dirname, 'public', 'spencer.html'));
 });
+
+app.get('/api/spencer', (req, res) => {
+  // res.send('barry. <a href="/">home</a>')
+  const myVar = 'Hello from server!';
+  res.json({ myVar });
+})
 
 // Start the server
 app.listen(PORT, () => {
