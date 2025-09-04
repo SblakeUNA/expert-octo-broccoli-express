@@ -1,5 +1,5 @@
 {
-  "name": "stunning-octo-fortnight-hello-express",
+  "name": "expert-octo-broccoli-express",
   "version": "1.0.0",
   "main": "app.js",
   "dependencies": {
@@ -42,6 +42,7 @@
     "merge-descriptors": "^2.0.0",
     "mime-db": "^1.54.0",
     "mime-types": "^3.0.1",
+    "mongodb": "^6.19.0",
     "ms": "^2.1.3",
     "negotiator": "^1.0.0",
     "nodemon": "^3.1.10",
