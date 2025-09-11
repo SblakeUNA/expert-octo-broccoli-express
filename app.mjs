@@ -84,6 +84,15 @@ async function runMongoConnection() {
 
 runMongoConnection().catch(console.dir);
 
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+  });
+});
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
