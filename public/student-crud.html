@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student CRUD App</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">📚 Student Management System</h1>
+
+    <!-- Database Management Section -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h5 class="card-title">🛠️ Database Management</h5>
+            <button class="btn btn-success me-2" onclick="seedDatabase()">
+              🌱 Seed Database
+            </button>
+            <button class="btn btn-danger" onclick="cleanupDatabase()">
+              🧹 Cleanup Database
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Student Form -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5>➕ Add New Student</h5>
+          </div>
+          <div class="card-body">
+            <form id="addStudentForm">
+              <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="age" class="form-label">Age</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="age"
+                  min="1"
+                  max="120"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="grade" class="form-label">Grade</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="grade"
+                  placeholder="A, B+, C, etc."
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary">Add Student</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Update Student Form -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5>✏️ Update Student</h5>
+          </div>
+          <div class="card-body">
+            <form id="updateStudentForm">
+              <div class="mb-3">
+                <label for="updateId" class="form-label">Student ID</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="updateId"
+                  placeholder="Click on a student ID below"
+                  readonly
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="updateName" class="form-label">Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="updateName"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="updateAge" class="form-label">Age</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="updateAge"
+                  min="1"
+                  max="120"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="updateGrade" class="form-label">Grade</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="updateGrade"
+                  required
+                  autocomplete="off"
+                />
+              </div>
+              <button type="submit" class="btn btn-warning">Update Student</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h5>👥 All Students</h5>
+            <button class="btn btn-info btn-sm" onclick="loadStudents()">🔄 Refresh</button>
+          </div>
+          <div class="card-body">
+            <div id="studentsList">
+              <p class="text-muted">Click "Refresh" to load students...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages" class="mt-3"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Show alert message to user (info, success, danger, warning)
+    function showMessage(message, type = "info") {
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+      // Automatically clear after 5 seconds
+      setTimeout(() => {
+        messagesDiv.innerHTML = "";
+      }, 5000);
+    }
+
+    // CREATE - Add new student
+    document
+      .getElementById("addStudentForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const student = {
+          name: document.getElementById("name").value.trim(),
+          age: parseInt(document.getElementById("age").value),
+          grade: document.getElementById("grade").value.trim(),
+        };
+
+        try {
+          const response = await fetch("/api/students", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(student),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            showMessage(`✅ Student "${student.name}" added successfully!`, "success");
+            document.getElementById("addStudentForm").reset();
+            loadStudents(); // Refresh the list
+          } else {
+            showMessage(`❌ Error: ${result.error}`, "danger");
+          }
+        } catch (error) {
+          showMessage(`❌ Network error: ${error.message}`, "danger");
+        }
+      });
+
+    // READ - Load all students and display
+    async function loadStudents() {
+      try {
+        const response = await fetch("/api/students");
+        const students = await response.json();
+
+        const studentsList = document.getElementById("studentsList");
+
+        if (!Array.isArray(students) || students.length === 0) {
+          studentsList.innerHTML =
+            '<p class="text-muted">No students found. Try seeding the database!</p>';
+          return;
+        }
+
+        studentsList.innerHTML = students
+          .map(
+            (student) => `
+          <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <strong>${student.name}</strong> (Age: ${student.age}, Grade: ${student.grade})<br />
+                <small class="text-muted">
+                  ID: <span
+                    class="student-id"
+                    style="cursor: pointer; text-decoration: underline;"
+                    data-id="${student._id}"
+                    data-name="${student.name}"
+                    data-age="${student.age}"
+                    data-grade="${student.grade}"
+                    >${student._id}</span
+                  >
+                </small>
+              </div>
+              <button
+                class="btn btn-outline-danger btn-sm delete-btn"
+                data-student-id="${student._id}"
+                data-student-name="${student.name}"
+              >
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        // Add click event listeners for student IDs (to fill update form)
+        document.querySelectorAll(".student-id").forEach((span) => {
+          span.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const name = this.getAttribute("data-name");
+            const age = this.getAttribute("data-age");
+            const grade = this.getAttribute("data-grade");
+            fillUpdateForm(id, name, age, grade);
+          });
+        });
+
+        // Add click event listeners for delete buttons
+        document.querySelectorAll(".delete-btn").forEach((button) => {
+          button.addEventListener("click", function () {
+            const id = this.getAttribute("data-student-id");
+            const name = this.getAttribute("data-student-name");
+            deleteStudent(id, name);
+          });
+        });
+
+        showMessage(`📋 Loaded ${students.length} students`, "info");
+      } catch (error) {
+        showMessage(`❌ Error loading students: ${error.message}`, "danger");
+      }
+    }
+
+    // Fill update form when clicking on student ID
+    function fillUpdateForm(id, name, age, grade) {
+      document.getElementById("updateId").value = id;
+      document.getElementById("updateName").value = name;
+      document.getElementById("updateAge").value = age;
+      document.getElementById("updateGrade").value = grade;
+      showMessage("📝 Student data loaded in update form", "info");
+    }
+
+    // UPDATE - Update student info
+    document
+      .getElementById("updateStudentForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById("updateId").value;
+        if (!id) {
+          showMessage("❌ Please select a student ID to update.", "warning");
+          return;
+        }
+
+        const student = {
+          name: document.getElementById("updateName").value.trim(),
+          age: parseInt(document.getElementById("updateAge").value),
+          grade: document.getElementById("updateGrade").value.trim(),
+        };
+
+        try {
+          const response = await fetch(`/api/students/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(student),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            showMessage(`✅ Student "${student.name}" updated successfully!`, "success");
+            document.getElementById("updateStudentForm").reset();
+            loadStudents(); // Refresh the list
+          } else {
+            showMessage(`❌ Error: ${result.error}`, "danger");
+          }
+        } catch (error) {
+          showMessage(`❌ Network error: ${error.message}`, "danger");
+        }
+      });
+
+    // DELETE - Delete student by ID
+    async function deleteStudent(id, name) {
+      if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/students/${id}`, {
+          method: "DELETE",
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(`✅ Student "${name}" deleted successfully!`, "success");
+          loadStudents(); // Refresh the list
+        } else {
+          showMessage(`❌ Error: ${result.error}`, "danger");
+        }
+      } catch (error) {
+        showMessage(`❌ Network error: ${error.message}`, "danger");
+      }
+    }
+
+    // Seed Database with sample students
+    async function seedDatabase() {
+      if (!confirm("This will add sample students to the database. Continue?")) {
+        return;
+      }
+
+      try {
+        showMessage("🌱 Seeding database...", "info");
+        const response = await fetch("/api/seed", {
+          method: "POST",
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(`✅ ${result.message}`, "success");
+          loadStudents(); // Refresh the list
+        } else {
+          showMessage(`❌ Error: ${result.error}`, "danger");
+        }
+      } catch (error) {
+        showMessage(`❌ Network error: ${error.message}`, "danger");
+      }
+    }
+
+    // Cleanup Database - delete all students
+    async function cleanupDatabase() {
+      if (
+        !confirm("⚠️ This will DELETE ALL students from the database. Are you sure?")
+      ) {
+        return;
+      }
+
+      try {
+        showMessage("🧹 Cleaning database...", "info");
+        const response = await fetch("/api/cleanup", {
+          method: "DELETE",
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(`✅ ${result.message}`, "success");
+          loadStudents(); // Refresh the list
+        } else {
+          showMessage(`❌ Error: ${result.error}`, "danger");
+        }
+      } catch (error) {
+        showMessage(`❌ Network error: ${error.message}`, "danger");
+      }
+    }
+
+    // Load students when page loads
+    window.addEventListener("load", loadStudents);
+  </script>
+</body>
+</html>
