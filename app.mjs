@@ -27,12 +27,14 @@ const mongoClient = new MongoClient(uri, {
 });
 
 let studentsCollection;
+let ordersCollection;
 
 async function initMongo() {
   try {
     await mongoClient.connect();
-    const db = mongoClient.db("studentDB"); // ✅ use consistent DB name
+    const db = mongoClient.db("studentDB");
     studentsCollection = db.collection("students");
+    ordersCollection = db.collection("orders"); // Added orders collection
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -257,6 +259,83 @@ app.post("/api/students/form", async (req, res) => {
     res.redirect("/traditional-forms.html?success=student-added");
   } catch {
     res.redirect("/traditional-forms.html?error=database-error");
+  }
+});
+
+// ---------------- ORDERS API ----------------
+
+// CREATE order
+app.post("/api/orders", async (req, res) => {
+  const { paperType, quantity, salesperson } = req.body;
+  if (!paperType || !quantity || !salesperson) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    const result = await ordersCollection.insertOne({
+      paperType,
+      quantity: Number(quantity),
+      salesperson,
+      createdAt: new Date(),
+    });
+    res.status(201).json({ _id: result.insertedId, paperType, quantity, salesperson });
+  } catch (err) {
+    res.status(500).json({ error: "Database insert failed" });
+  }
+});
+
+// READ all orders
+app.get("/api/orders", async (req, res) => {
+  try {
+    const orders = await ordersCollection.find().toArray();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: "Database read failed" });
+  }
+});
+
+// READ order by id
+app.get("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await ordersCollection.findOne({ _id: new ObjectId(id) });
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: "Database read failed" });
+  }
+});
+
+// UPDATE order (PUT)
+app.put("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paperType, quantity, salesperson } = req.body;
+    const result = await ordersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { paperType, quantity: Number(quantity), salesperson } }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.json({ message: "Order updated" });
+  } catch {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
+// DELETE order
+app.delete("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await ordersCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    res.json({ message: "Order deleted" });
+  } catch {
+    res.status(500).json({ error: "Delete failed" });
   }
 });
 
