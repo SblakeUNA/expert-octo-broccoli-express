@@ -28,6 +28,7 @@ const mongoClient = new MongoClient(uri, {
 
 let studentsCollection;
 let ordersCollection;
+let postsCollection; // Added posts collection for social media posts
 
 async function initMongo() {
   try {
@@ -35,6 +36,7 @@ async function initMongo() {
     const db = mongoClient.db("studentDB");
     studentsCollection = db.collection("students");
     ordersCollection = db.collection("orders"); // Added orders collection
+    postsCollection = db.collection("posts"); // Added posts collection
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -50,10 +52,10 @@ app.get("/", (req, res) => {
     <!DOCTYPE html>
     <html lang="en">
     <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Dunder Mifflin Infinity</title>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
       <style>
         body {
           background: #f4f6f9;
@@ -95,7 +97,7 @@ app.get("/", (req, res) => {
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
           <a class="navbar-brand d-flex align-items-center" href="/">
-            <img src="images/DunderMifflin.png" alt="Dunder Mifflin" class="logo">
+            <img src="images/DunderMifflin.png" alt="Dunder Mifflin" class="logo" />
             Dunder Mifflin Infinity
           </a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -103,10 +105,10 @@ app.get("/", (req, res) => {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-              <li class="nav-item"><a class="nav-link" href="spencer.html">Spencer</a></li>
-              <li class="nav-item"><a class="nav-link" href="student-crud.html">Student CRUD</a></li>
+              <li class="nav-item"><a class="nav-link" href="student-crud.html">📄 Order Paper</a></li>
               <li class="nav-item"><a class="nav-link" href="advanced-student-manager.html">Advanced Manager</a></li>
               <li class="nav-item"><a class="nav-link" href="traditional-forms.html">Traditional Forms</a></li>
+              <li class="nav-item"><a class="nav-link" href="spencer.html">Contact Us</a></li>
             </ul>
           </div>
         </div>
@@ -116,7 +118,7 @@ app.get("/", (req, res) => {
       <section class="hero">
         <h1>Welcome to Dunder Mifflin Infinity</h1>
         <p>“Limitless paper in a paperless world.”</p>
-        <a href="student-crud.html" class="btn btn-light btn-lg mt-3">📚 Buy Paper</a>
+        <a href="student-crud.html" class="btn btn-light btn-lg mt-3">📄 Order Paper</a>
       </section>
 
       <!-- Footer -->
@@ -135,7 +137,7 @@ app.get("/spencer", (req, res) => {
   res.sendFile(join(__dirname, "public", "spencer.html"));
 });
 
-// ---------------- STUDENT API ----------------
+// ---------------- STUDENT (Paper) API ----------------
 
 // CREATE
 app.post("/api/students", async (req, res) => {
@@ -339,12 +341,103 @@ app.delete("/api/orders/:id", async (req, res) => {
   }
 });
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", uptime: process.uptime() });
+// SEED orders
+app.post("/api/orders/seed", async (req, res) => {
+  try {
+    await ordersCollection.deleteMany({});
+    const sample = [
+      { paperType: "Copy Paper", quantity: 500, salesperson: "Michael Scott" },
+      { paperType: "Cardstock", quantity: 100, salesperson: "Dwight Schrute" },
+      { paperType: "Recycled Paper", quantity: 300, salesperson: "Jim Halpert" },
+    ];
+    await ordersCollection.insertMany(sample);
+    res.json({ message: "Orders seeded" });
+  } catch {
+    res.status(500).json({ error: "Seeding failed" });
+  }
 });
 
-// Start server
+// CLEANUP orders
+app.delete("/api/orders/cleanup", async (req, res) => {
+  try {
+    await ordersCollection.deleteMany({});
+    res.json({ message: "All orders deleted" });
+  } catch {
+    res.status(500).json({ error: "Cleanup failed" });
+  }
+});
+
+// FORM submission for orders
+app.post("/api/orders/form", async (req, res) => {
+  const { paperType, quantity, salesperson } = req.body;
+  if (!paperType || !quantity || !salesperson) {
+    return res.redirect("/traditional-forms.html?error=missing-fields");
+  }
+  try {
+    await ordersCollection.insertOne({
+      paperType,
+      quantity: Number(quantity),
+      salesperson,
+      createdAt: new Date(),
+    });
+    res.redirect("/traditional-forms.html?success=order-added");
+  } catch {
+    res.redirect("/traditional-forms.html?error=database-error");
+  }
+});
+
+// ---------------- API for spencer.html ----------------
+
+app.get("/api/spencer", (req, res) => {
+  res.json({ myVar: "This is a message from the API for Spencer." });
+});
+
+// Contact form POST from spencer.html
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Here you could store this info in DB or send email...
+
+  console.log(`Contact form submitted by ${name} (${email}): ${message}`);
+
+  res.json({ message: 'Message received! Kelly will get back to you soon.' });
+});
+
+// ---------------- SOCIAL MEDIA POSTS API ----------------
+
+// Get all posts sorted by createdAt descending
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await postsCollection.find().sort({ createdAt: -1 }).toArray();
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+// Create a new post
+app.post("/api/posts", async (req, res) => {
+  const { author, content, date } = req.body;
+  if (!author || !content) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  try {
+    const newPost = {
+      author,
+      content,
+      createdAt: date ? new Date(date) : new Date(),
+    };
+    const result = await postsCollection.insertOne(newPost);
+    res.status(201).json({ _id: result.insertedId, ...newPost });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create post" });
+  }
+});
+
+// ---------------- START SERVER ----------------
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

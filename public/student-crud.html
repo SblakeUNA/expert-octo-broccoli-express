@@ -1,152 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Student CRUD App</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dunder Mifflin - Paper Orders</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
 </head>
 <body>
-  <div class="container mt-5">
-    <h1 class="text-center mb-4">📚 Student Management System</h1>
-
-    <!-- Database Management Section -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card bg-light">
-          <div class="card-body text-center">
-            <h5 class="card-title">🛠️ Database Management</h5>
-            <button class="btn btn-success me-2" onclick="seedDatabase()">
-              🌱 Seed Database
-            </button>
-            <button class="btn btn-danger" onclick="cleanupDatabase()">
-              🧹 Cleanup Database
-            </button>
-          </div>
-        </div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="images/DunderMifflin.png" alt="Logo" height="40" class="me-2" />
+        Dunder Mifflin Infinity
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">🏠 Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/student-crud.html">📄 Order Paper</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/traditional-forms.html">📝 Traditional Forms</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/advanced-student-manager.html">🧮 Advanced Manager</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/spencer">📞 Contact Us</a>
+          </li>
+        </ul>
       </div>
     </div>
+  </nav>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">📦 Dunder Mifflin Paper Orders</h1>
 
-    <!-- Add Student Form -->
+    <!-- Add Order Form -->
     <div class="row mb-4">
       <div class="col-md-6">
         <div class="card">
           <div class="card-header">
-            <h5>➕ Add New Student</h5>
+            <h5>➕ Place New Paper Order</h5>
           </div>
           <div class="card-body">
-            <form id="addStudentForm">
+            <form id="addOrderForm">
               <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="name"
-                  required
-                  autocomplete="off"
-                />
+                <label for="paperType" class="form-label">Paper Type</label>
+                <select class="form-select" id="paperType" required>
+                  <option value="">-- Select Paper Type --</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Glossy">Glossy</option>
+                  <option value="Cardstock">Cardstock</option>
+                  <option value="Recycled">Recycled</option>
+                  <option value="Premium">Premium</option>
+                </select>
               </div>
               <div class="mb-3">
-                <label for="age" class="form-label">Age</label>
+                <label for="quantity" class="form-label">Quantity</label>
                 <input
                   type="number"
                   class="form-control"
-                  id="age"
+                  id="quantity"
                   min="1"
-                  max="120"
                   required
                 />
               </div>
               <div class="mb-3">
-                <label for="grade" class="form-label">Grade</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="grade"
-                  placeholder="A, B+, C, etc."
-                  required
-                  autocomplete="off"
-                />
+                <label for="salesperson" class="form-label">Salesperson</label>
+                <select class="form-select" id="salesperson" required>
+                  <option value="">-- Select Salesperson --</option>
+                  <option value="Michael Scott">Michael Scott</option>
+                  <option value="Dwight Schrute">Dwight Schrute</option>
+                  <option value="Jim Halpert">Jim Halpert</option>
+                  <option value="Pam Beesly">Pam Beesly</option>
+                  <option value="Stanley Hudson">Stanley Hudson</option>
+                  <option value="Phyllis Vance">Phyllis Vance</option>
+                </select>
               </div>
-              <button type="submit" class="btn btn-primary">Add Student</button>
+              <button type="submit" class="btn btn-primary">Add Order</button>
             </form>
           </div>
         </div>
       </div>
 
-      <!-- Update Student Form -->
+      <!-- Update Order Form -->
       <div class="col-md-6">
         <div class="card">
           <div class="card-header">
-            <h5>✏️ Update Student</h5>
+            <h5>✏️ Update Paper Order</h5>
           </div>
           <div class="card-body">
-            <form id="updateStudentForm">
+            <form id="updateOrderForm">
               <div class="mb-3">
-                <label for="updateId" class="form-label">Student ID</label>
+                <label for="updateId" class="form-label">Order ID</label>
                 <input
                   type="text"
                   class="form-control"
                   id="updateId"
-                  placeholder="Click on a student ID below"
+                  placeholder="Click an order ID to edit"
                   readonly
                   required
                 />
               </div>
               <div class="mb-3">
-                <label for="updateName" class="form-label">Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="updateName"
-                  required
-                  autocomplete="off"
-                />
+                <label for="updatePaperType" class="form-label">Paper Type</label>
+                <select class="form-select" id="updatePaperType" required>
+                  <option value="">-- Select Paper Type --</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Glossy">Glossy</option>
+                  <option value="Cardstock">Cardstock</option>
+                  <option value="Recycled">Recycled</option>
+                  <option value="Premium">Premium</option>
+                </select>
               </div>
               <div class="mb-3">
-                <label for="updateAge" class="form-label">Age</label>
+                <label for="updateQuantity" class="form-label">Quantity</label>
                 <input
                   type="number"
                   class="form-control"
-                  id="updateAge"
+                  id="updateQuantity"
                   min="1"
-                  max="120"
                   required
                 />
               </div>
               <div class="mb-3">
-                <label for="updateGrade" class="form-label">Grade</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="updateGrade"
-                  required
-                  autocomplete="off"
-                />
+                <label for="updateSalesperson" class="form-label">Salesperson</label>
+                <select class="form-select" id="updateSalesperson" required>
+                  <option value="">-- Select Salesperson --</option>
+                  <option value="Michael Scott">Michael Scott</option>
+                  <option value="Dwight Schrute">Dwight Schrute</option>
+                  <option value="Jim Halpert">Jim Halpert</option>
+                  <option value="Pam Beesly">Pam Beesly</option>
+                  <option value="Stanley Hudson">Stanley Hudson</option>
+                  <option value="Phyllis Vance">Phyllis Vance</option>
+                </select>
               </div>
-              <button type="submit" class="btn btn-warning">Update Student</button>
+              <button type="submit" class="btn btn-warning">Update Order</button>
             </form>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Students List -->
+    <!-- Orders List -->
     <div class="row">
       <div class="col-12">
         <div class="card">
           <div
             class="card-header d-flex justify-content-between align-items-center"
           >
-            <h5>👥 All Students</h5>
-            <button class="btn btn-info btn-sm" onclick="loadStudents()">🔄 Refresh</button>
+            <h5>📋 All Orders</h5>
+            <button class="btn btn-info btn-sm" onclick="loadOrders()">🔄 Refresh</button>
           </div>
           <div class="card-body">
-            <div id="studentsList">
-              <p class="text-muted">Click "Refresh" to load students...</p>
+            <div id="ordersList">
+              <p class="text-muted">Click "Refresh" to load orders...</p>
             </div>
           </div>
         </div>
@@ -159,7 +183,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Show alert message to user (info, success, danger, warning)
     function showMessage(message, type = "info") {
       const messagesDiv = document.getElementById("messages");
       messagesDiv.innerHTML = `
@@ -168,84 +191,80 @@
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       `;
-      // Automatically clear after 5 seconds
       setTimeout(() => {
         messagesDiv.innerHTML = "";
       }, 5000);
     }
 
-    // CREATE - Add new student
-    document
-      .getElementById("addStudentForm")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
+    // CREATE - Add new order
+    document.getElementById("addOrderForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-        const student = {
-          name: document.getElementById("name").value.trim(),
-          age: parseInt(document.getElementById("age").value),
-          grade: document.getElementById("grade").value.trim(),
-        };
+      const order = {
+        paperType: document.getElementById("paperType").value,
+        quantity: parseInt(document.getElementById("quantity").value),
+        salesperson: document.getElementById("salesperson").value,
+      };
 
-        try {
-          const response = await fetch("/api/students", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(student),
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            showMessage(`✅ Student "${student.name}" added successfully!`, "success");
-            document.getElementById("addStudentForm").reset();
-            loadStudents(); // Refresh the list
-          } else {
-            showMessage(`❌ Error: ${result.error}`, "danger");
-          }
-        } catch (error) {
-          showMessage(`❌ Network error: ${error.message}`, "danger");
-        }
-      });
-
-    // READ - Load all students and display
-    async function loadStudents() {
       try {
-        const response = await fetch("/api/students");
-        const students = await response.json();
+        const response = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(order),
+        });
 
-        const studentsList = document.getElementById("studentsList");
+        const result = await response.json();
 
-        if (!Array.isArray(students) || students.length === 0) {
-          studentsList.innerHTML =
-            '<p class="text-muted">No students found. Try seeding the database!</p>';
+        if (response.ok) {
+          showMessage(`✅ Order for "${order.paperType}" added successfully!`, "success");
+          document.getElementById("addOrderForm").reset();
+          loadOrders();
+        } else {
+          showMessage(`❌ Error: ${result.error}`, "danger");
+        }
+      } catch (error) {
+        showMessage(`❌ Network error: ${error.message}`, "danger");
+      }
+    });
+
+    // READ - Load orders
+    async function loadOrders() {
+      try {
+        const response = await fetch("/api/orders");
+        const orders = await response.json();
+
+        const ordersList = document.getElementById("ordersList");
+
+        if (!Array.isArray(orders) || orders.length === 0) {
+          ordersList.innerHTML =
+            '<p class="text-muted">No orders found. Place one to get started!</p>';
           return;
         }
 
-        studentsList.innerHTML = students
+        ordersList.innerHTML = orders
           .map(
-            (student) => `
+            (order) => `
           <div class="card mb-2">
             <div class="card-body d-flex justify-content-between align-items-center">
               <div>
-                <strong>${student.name}</strong> (Age: ${student.age}, Grade: ${student.grade})<br />
+                <strong>${order.paperType}</strong> - ${order.quantity} reams<br />
+                <small class="text-muted">Salesperson: ${order.salesperson}</small><br />
                 <small class="text-muted">
                   ID: <span
-                    class="student-id"
+                    class="order-id"
                     style="cursor: pointer; text-decoration: underline;"
-                    data-id="${student._id}"
-                    data-name="${student.name}"
-                    data-age="${student.age}"
-                    data-grade="${student.grade}"
-                    >${student._id}</span
+                    data-id="${order._id}"
+                    data-paper="${order.paperType}"
+                    data-qty="${order.quantity}"
+                    data-salesperson="${order.salesperson}"
+                    >${order._id}</span
                   >
                 </small>
               </div>
               <button
                 class="btn btn-outline-danger btn-sm delete-btn"
-                data-student-id="${student._id}"
-                data-student-name="${student.name}"
+                data-order-id="${order._id}"
+                data-order-paper="${order.paperType}"
               >
                 🗑️ Delete
               </button>
@@ -255,160 +274,92 @@
           )
           .join("");
 
-        // Add click event listeners for student IDs (to fill update form)
-        document.querySelectorAll(".student-id").forEach((span) => {
+        document.querySelectorAll(".order-id").forEach((span) => {
           span.addEventListener("click", function () {
-            const id = this.getAttribute("data-id");
-            const name = this.getAttribute("data-name");
-            const age = this.getAttribute("data-age");
-            const grade = this.getAttribute("data-grade");
-            fillUpdateForm(id, name, age, grade);
+            fillUpdateForm(
+              this.getAttribute("data-id"),
+              this.getAttribute("data-paper"),
+              this.getAttribute("data-qty"),
+              this.getAttribute("data-salesperson")
+            );
           });
         });
 
-        // Add click event listeners for delete buttons
-        document.querySelectorAll(".delete-btn").forEach((button) => {
-          button.addEventListener("click", function () {
-            const id = this.getAttribute("data-student-id");
-            const name = this.getAttribute("data-student-name");
-            deleteStudent(id, name);
+        document.querySelectorAll(".delete-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const id = this.getAttribute("data-order-id");
+            const paper = this.getAttribute("data-order-paper");
+            deleteOrder(id, paper);
           });
         });
-
-        showMessage(`📋 Loaded ${students.length} students`, "info");
-      } catch (error) {
-        showMessage(`❌ Error loading students: ${error.message}`, "danger");
+      } catch (err) {
+        showMessage(`❌ Failed to load orders: ${err.message}`, "danger");
       }
     }
 
-    // Fill update form when clicking on student ID
-    function fillUpdateForm(id, name, age, grade) {
+    // Fill update form
+    function fillUpdateForm(id, paperType, quantity, salesperson) {
       document.getElementById("updateId").value = id;
-      document.getElementById("updateName").value = name;
-      document.getElementById("updateAge").value = age;
-      document.getElementById("updateGrade").value = grade;
-      showMessage("📝 Student data loaded in update form", "info");
+      document.getElementById("updatePaperType").value = paperType;
+      document.getElementById("updateQuantity").value = quantity;
+      document.getElementById("updateSalesperson").value = salesperson;
     }
 
-    // UPDATE - Update student info
-    document
-      .getElementById("updateStudentForm")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
+    // UPDATE - Submit update form
+    document.getElementById("updateOrderForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-        const id = document.getElementById("updateId").value;
-        if (!id) {
-          showMessage("❌ Please select a student ID to update.", "warning");
-          return;
-        }
-
-        const student = {
-          name: document.getElementById("updateName").value.trim(),
-          age: parseInt(document.getElementById("updateAge").value),
-          grade: document.getElementById("updateGrade").value.trim(),
-        };
-
-        try {
-          const response = await fetch(`/api/students/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(student),
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            showMessage(`✅ Student "${student.name}" updated successfully!`, "success");
-            document.getElementById("updateStudentForm").reset();
-            loadStudents(); // Refresh the list
-          } else {
-            showMessage(`❌ Error: ${result.error}`, "danger");
-          }
-        } catch (error) {
-          showMessage(`❌ Network error: ${error.message}`, "danger");
-        }
-      });
-
-    // DELETE - Delete student by ID
-    async function deleteStudent(id, name) {
-      if (!confirm(`Are you sure you want to delete "${name}"?`)) {
-        return;
-      }
+      const id = document.getElementById("updateId").value;
+      const updateData = {
+        paperType: document.getElementById("updatePaperType").value,
+        quantity: parseInt(document.getElementById("updateQuantity").value),
+        salesperson: document.getElementById("updateSalesperson").value,
+      };
 
       try {
-        const response = await fetch(`/api/students/${id}`, {
+        const response = await fetch(`/api/orders/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage(`✏️ Order updated successfully.`, "success");
+          document.getElementById("updateOrderForm").reset();
+          loadOrders();
+        } else {
+          showMessage(`❌ Error: ${result.error}`, "danger");
+        }
+      } catch (err) {
+        showMessage(`❌ Update failed: ${err.message}`, "danger");
+      }
+    });
+
+    // DELETE - Delete order
+    async function deleteOrder(id, paperType) {
+      if (!confirm(`Are you sure you want to delete the "${paperType}" order?`)) return;
+
+      try {
+        const response = await fetch(`/api/orders/${id}`, {
           method: "DELETE",
         });
 
         const result = await response.json();
 
         if (response.ok) {
-          showMessage(`✅ Student "${name}" deleted successfully!`, "success");
-          loadStudents(); // Refresh the list
+          showMessage(`🗑️ Order deleted successfully.`, "success");
+          loadOrders();
         } else {
-          showMessage(`❌ Error: ${result.error}`, "danger");
+          showMessage(`❌ Delete failed: ${result.error}`, "danger");
         }
-      } catch (error) {
-        showMessage(`❌ Network error: ${error.message}`, "danger");
+      } catch (err) {
+        showMessage(`❌ Delete failed: ${err.message}`, "danger");
       }
     }
 
-    // Seed Database with sample students
-    async function seedDatabase() {
-      if (!confirm("This will add sample students to the database. Continue?")) {
-        return;
-      }
-
-      try {
-        showMessage("🌱 Seeding database...", "info");
-        const response = await fetch("/api/seed", {
-          method: "POST",
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showMessage(`✅ ${result.message}`, "success");
-          loadStudents(); // Refresh the list
-        } else {
-          showMessage(`❌ Error: ${result.error}`, "danger");
-        }
-      } catch (error) {
-        showMessage(`❌ Network error: ${error.message}`, "danger");
-      }
-    }
-
-    // Cleanup Database - delete all students
-    async function cleanupDatabase() {
-      if (
-        !confirm("⚠️ This will DELETE ALL students from the database. Are you sure?")
-      ) {
-        return;
-      }
-
-      try {
-        showMessage("🧹 Cleaning database...", "info");
-        const response = await fetch("/api/cleanup", {
-          method: "DELETE",
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showMessage(`✅ ${result.message}`, "success");
-          loadStudents(); // Refresh the list
-        } else {
-          showMessage(`❌ Error: ${result.error}`, "danger");
-        }
-      } catch (error) {
-        showMessage(`❌ Network error: ${error.message}`, "danger");
-      }
-    }
-
-    // Load students when page loads
-    window.addEventListener("load", loadStudents);
+    window.onload = loadOrders;
   </script>
 </body>
 </html>
