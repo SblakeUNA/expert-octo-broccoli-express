@@ -302,7 +302,7 @@ app.put("/api/orders/:id", async (req, res) => {
       { $set: { paperType, quantity: Number(quantity), salesperson } }
     );
     if (result.matchedCount === 0) {
-      return res.status(404).json({ email: "Order not found" });
+      return res.status(404).json({ error: "Order not found" });
     }
     res.json({ message: "Order updated" });
   } catch (err) {
@@ -314,13 +314,13 @@ app.put("/api/orders/:id", async (req, res) => {
 
 // CREATE post
 app.post("/api/posts", async (req, res) => {
-  const { title, content } = req.body;
-  if (!title || !content) {
-    return res.status(400).json({ error: "Missing post title or content" });
+  const { username, content } = req.body; // Updated to match traditional-forms.html
+  if (!username || !content) {
+    return res.status(400).json({ error: "Missing username or content" });
   }
   try {
     const post = {
-      title,
+      username,
       content,
       createdAt: new Date(),
     };
