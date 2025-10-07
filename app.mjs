@@ -24,6 +24,8 @@ if (!uri) {
   process.exit(1); // exit the app if no URI
 }
 
+console.log('Using Mongo URI:', JSON.stringify(uri));
+
 const mongoClient = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
