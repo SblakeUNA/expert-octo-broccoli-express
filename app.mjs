@@ -17,8 +17,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB connection
-const uri =
-  "mongodb+srv://sblake_db_user:5sWwcmkhDG2HRRxT@expert-octo-broccoli-ex.ytj0v6q.mongodb.net/?retryWrites=true&w=majority&appName=expert-octo-broccoli-express";
+const uri = process.env.MONGO_URI;
+
+if (!uri) {
+  console.error("❌ MONGO_URI not set in environment variables");
+  process.exit(1);
+}
 
 const mongoClient = new MongoClient(uri, {
   serverApi: {
@@ -26,6 +30,8 @@ const mongoClient = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  // Temporary: for debugging SSL certificate issues only, remove in production
+  tlsAllowInvalidCertificates: true,
 });
 
 let studentsCollection;
@@ -42,9 +48,9 @@ async function initMongo() {
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
+    process.exit(1);
   }
 }
-initMongo();
 
 // ---------------- ROUTES ----------------
 
@@ -142,6 +148,9 @@ app.get("/spencer", (req, res) => {
 
 // CREATE student
 app.post("/api/students", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   const { name, age, grade } = req.body;
   if (!name || !age || !grade) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -155,12 +164,16 @@ app.post("/api/students", async (req, res) => {
     });
     res.json({ _id: result.insertedId, name, age, grade });
   } catch (err) {
+    console.error("Insert error:", err);
     res.status(500).json({ error: "Database insert failed" });
   }
 });
 
 // READ students
 app.get("/api/students", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const students = await studentsCollection.find().toArray();
     res.json(students);
@@ -171,6 +184,9 @@ app.get("/api/students", async (req, res) => {
 
 // UPDATE (PUT) student
 app.put("/api/students/:id", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const { name, age, grade } = req.body;
@@ -189,6 +205,9 @@ app.put("/api/students/:id", async (req, res) => {
 
 // UPDATE (PATCH) student
 app.patch("/api/students/:id", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const updateData = req.body;
@@ -208,6 +227,9 @@ app.patch("/api/students/:id", async (req, res) => {
 
 // DELETE student
 app.delete("/api/students/:id", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const result = await studentsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -222,6 +244,9 @@ app.delete("/api/students/:id", async (req, res) => {
 
 // SEED students
 app.post("/api/students/seed", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     await studentsCollection.deleteMany({});
     const sample = [
@@ -238,6 +263,9 @@ app.post("/api/students/seed", async (req, res) => {
 
 // CLEANUP students
 app.delete("/api/students/cleanup", async (req, res) => {
+  if (!studentsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     await studentsCollection.deleteMany({});
     res.json({ message: "All students deleted" });
@@ -248,6 +276,9 @@ app.delete("/api/students/cleanup", async (req, res) => {
 
 // FORM submission for students
 app.post("/api/students/form", async (req, res) => {
+  if (!studentsCollection) {
+    return res.redirect("/traditional-forms.html?error=database-not-initialized");
+  }
   const { name, age, grade } = req.body;
   if (!name || !age || !grade) {
     return res.redirect("/traditional-forms.html?error=missing-fields");
@@ -269,6 +300,9 @@ app.post("/api/students/form", async (req, res) => {
 
 // CREATE order
 app.post("/api/orders", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   const { paperType, quantity, salesperson } = req.body;
   if (!paperType || !quantity || !salesperson) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -282,12 +316,16 @@ app.post("/api/orders", async (req, res) => {
     });
     res.status(201).json({ _id: result.insertedId, paperType, quantity, salesperson });
   } catch (err) {
+    console.error("Insert order error:", err);
     res.status(500).json({ error: "Database insert failed" });
   }
 });
 
 // READ all orders
 app.get("/api/orders", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const orders = await ordersCollection.find().toArray();
     res.json(orders);
@@ -298,6 +336,9 @@ app.get("/api/orders", async (req, res) => {
 
 // READ order by id
 app.get("/api/orders/:id", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const order = await ordersCollection.findOne({ _id: new ObjectId(id) });
@@ -312,6 +353,9 @@ app.get("/api/orders/:id", async (req, res) => {
 
 // UPDATE order (PUT)
 app.put("/api/orders/:id", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const { paperType, quantity, salesperson } = req.body;
@@ -339,6 +383,9 @@ app.put("/api/orders/:id", async (req, res) => {
 
 // DELETE order
 app.delete("/api/orders/:id", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const result = await ordersCollection.deleteOne({ _id: new ObjectId(id) });
@@ -346,19 +393,22 @@ app.delete("/api/orders/:id", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
     res.json({ message: "Order deleted" });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Delete failed" });
   }
 });
 
 // SEED orders
 app.post("/api/orders/seed", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     await ordersCollection.deleteMany({});
     const sampleOrders = [
-      { paperType: "Copy Paper", quantity: 100, salesperson: "Jim Halpert" },
-      { paperType: "Cardstock", quantity: 50, salesperson: "Pam Beesly" },
-      { paperType: "Legal Paper", quantity: 30, salesperson: "Dwight Schrute" },
+      { paperType: "Standard", quantity: 100, salesperson: "Jim" },
+      { paperType: "Premium", quantity: 50, salesperson: "Pam" },
+      { paperType: "Recycled", quantity: 200, salesperson: "Dwight" },
     ];
     await ordersCollection.insertMany(sampleOrders);
     res.json({ message: "Orders seeded" });
@@ -369,6 +419,9 @@ app.post("/api/orders/seed", async (req, res) => {
 
 // CLEANUP orders
 app.delete("/api/orders/cleanup", async (req, res) => {
+  if (!ordersCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     await ordersCollection.deleteMany({});
     res.json({ message: "All orders deleted" });
@@ -381,55 +434,45 @@ app.delete("/api/orders/cleanup", async (req, res) => {
 
 // CREATE post
 app.post("/api/posts", async (req, res) => {
-  const { username, content } = req.body;
-  if (!username || !content) {
-    return res.status(400).json({ error: "Missing username or content" });
+  if (!postsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
+  const { title, content, author } = req.body;
+  if (!title || !content || !author) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
   try {
     const result = await postsCollection.insertOne({
-      username,
+      title,
       content,
+      author,
       createdAt: new Date(),
     });
-    res.status(201).json({ _id: result.insertedId, username, content });
-  } catch {
-    res.status(500).json({ error: "Failed to create post" });
+    res.status(201).json({ _id: result.insertedId, title, content, author });
+  } catch (err) {
+    console.error("Insert post error:", err);
+    res.status(500).json({ error: "Database insert failed" });
   }
 });
 
-// READ all posts
+// READ posts
 app.get("/api/posts", async (req, res) => {
-  try {
-    const posts = await postsCollection.find().sort({ createdAt: -1 }).toArray();
-    res.json(posts);
-  } catch {
-    res.status(500).json({ error: "Failed to fetch posts" });
+  if (!postsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
   }
-});
-
-// UPDATE post
-app.put("/api/posts/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { username, content } = req.body;
-    if (!username || !content) {
-      return res.status(400).json({ error: "Missing username or content" });
-    }
-    const result = await postsCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { username, content } }
-    );
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-    res.json({ message: "Post updated" });
-  } catch {
-    res.status(500).json({ error: "Update failed" });
+    const posts = await postsCollection.find().toArray();
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: "Database read failed" });
   }
 });
 
 // DELETE post
 app.delete("/api/posts/:id", async (req, res) => {
+  if (!postsCollection) {
+    return res.status(500).json({ error: "Database not initialized" });
+  }
   try {
     const { id } = req.params;
     const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
@@ -443,7 +486,12 @@ app.delete("/api/posts/:id", async (req, res) => {
 });
 
 // ---------------- START SERVER ----------------
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
 
+async function startServer() {
+  await initMongo();
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+  });
+}
+
+startServer();
