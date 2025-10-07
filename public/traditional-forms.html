@@ -114,7 +114,6 @@
       }, 5000);
     }
 
-    // Format date nicely
     function formatDate(dateStr) {
       const date = new Date(dateStr);
       return date.toLocaleString(undefined, {
@@ -123,7 +122,6 @@
       });
     }
 
-    // Render posts
     function renderPosts(posts) {
       postsContainer.innerHTML = "";
       if (posts.length === 0) {
@@ -142,7 +140,6 @@
       });
     }
 
-    // Fetch posts from API
     async function fetchPosts() {
       postsContainer.innerHTML = "<p class='loading'>Loading posts...</p>";
       try {
@@ -156,7 +153,6 @@
       }
     }
 
-    // Submit new post
     postForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("username").value.trim();
@@ -187,7 +183,6 @@
       }
     });
 
-    // Initial load
     fetchPosts();
   </script>
 </body>
