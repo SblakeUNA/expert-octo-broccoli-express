@@ -45,7 +45,7 @@ async function initMongo() {
     const db = mongoClient.db("studentDB");
     studentsCollection = db.collection("students");
     ordersCollection = db.collection("orders");
-    postsCollection = db.collection("posts");
+    postsCollection = db.collection("posts"); // Ensure postsCollection is always initialized
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -66,43 +66,16 @@ app.get("/", (req, res) => {
       <title>Dunder Mifflin Infinity</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
       <style>
-        body {
-          background: #f4f6f9;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar-brand {
-          font-weight: bold;
-          font-size: 1.5rem;
-          color: #00529b !important;
-        }
-        .hero {
-          text-align: center;
-          padding: 80px 20px;
-          background: linear-gradient(135deg, #00529b, #0073e6);
-          color: white;
-        }
-        .hero h1 {
-          font-size: 3rem;
-          font-weight: bold;
-        }
-        .hero p {
-          font-size: 1.25rem;
-        }
-        footer {
-          margin-top: 60px;
-          padding: 20px;
-          background: #00529b;
-          color: white;
-          text-align: center;
-        }
-        .logo {
-          height: 40px;
-          margin-right: 10px;
-        }
+        body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar-brand { font-weight: bold; font-size: 1.5rem; color: #00529b !important; }
+        .hero { text-align: center; padding: 80px 20px; background: linear-gradient(135deg, #00529b, #0073e6); color: white; }
+        .hero h1 { font-size: 3rem; font-weight: bold; }
+        .hero p { font-size: 1.25rem; }
+        footer { margin-top: 60px; padding: 20px; background: #00529b; color: white; text-align: center; }
+        .logo { height: 40px; margin-right: 10px; }
       </style>
     </head>
     <body>
-      <!-- Navbar -->
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
           <a class="navbar-brand d-flex align-items-center" href="/">
@@ -122,14 +95,12 @@ app.get("/", (req, res) => {
         </div>
       </nav>
 
-      <!-- Hero Section -->
       <section class="hero">
         <h1>Welcome to Dunder Mifflin Infinity</h1>
         <p>“Limitless paper in a paperless world.”</p>
         <a href="student-crud.html" class="btn btn-light btn-lg mt-3">📄 Order Paper</a>
       </section>
 
-      <!-- Footer -->
       <footer>
         &copy; ${new Date().getFullYear()} Dunder Mifflin, Inc. | Infinity Portal
       </footer>
@@ -140,7 +111,7 @@ app.get("/", (req, res) => {
   `);
 });
 
-// Serve spencer.html directly
+// Serve spencer.html directly (corrected to match file name)
 app.get("/spencer", (req, res) => {
   res.sendFile(join(__dirname, "public", "spencer.html"));
 });
@@ -318,6 +289,27 @@ app.delete("/api/orders/:id", async (req, res) => {
   }
 });
 
+// UPDATE (PUT) order
+app.put("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paperType, quantity, salesperson } = req.body;
+    if (!paperType || !quantity || !salesperson) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    const result = await ordersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { paperType, quantity: Number(quantity), salesperson } }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ email: "Order not found" });
+    }
+    res.json({ message: "Order updated" });
+  } catch (err) {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
 // ---------------- POSTS API ----------------
 
 // CREATE post
@@ -360,6 +352,40 @@ app.delete("/api/posts/:id", async (req, res) => {
     res.json({ message: "Post deleted" });
   } catch (err) {
     res.status(500).json({ error: "Delete post failed" });
+  }
+});
+
+// ---------------- CONTACT API ----------------
+app.post("/api/contact", async (req, res) => {
+  const { name, email, message } = req.body;
+  console.log("Received contact request:", { name, email, message }); // Log incoming data
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  // Basic email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email format" });
+  }
+  try {
+    if (!postsCollection) {
+      const db = mongoClient.db("studentDB");
+      postsCollection = db.collection("posts");
+      console.log("Initialized postsCollection for contact");
+    }
+    const contact = {
+      name,
+      email,
+      message,
+      createdAt: new Date(),
+      status: "pending",
+    };
+    console.log("Inserting contact:", contact); // Log before insert
+    const result = await postsCollection.insertOne(contact);
+    console.log("Insert result:", result); // Log insert outcome
+    res.json({ message: "Thanks for contacting us! Kelly will get back to you soon.", _id: result.insertedId });
+  } catch (err) {
+    console.error("Contact save error:", err); // Log the error
+    res.status(500).json({ error: "Failed to save contact message" });
   }
 });
 
