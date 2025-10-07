@@ -2,6 +2,8 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -444,3 +446,4 @@ app.delete("/api/posts/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
