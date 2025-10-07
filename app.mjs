@@ -21,10 +21,10 @@ const uri = process.env.MONGO_URI;
 
 if (!uri) {
   console.error("❌ MONGO_URI not set in environment variables");
-  process.exit(1); // exit the app if no URI
+  process.exit(1); // Exit the app if no URI
 }
 
-console.log('Using Mongo URI:', JSON.stringify(uri));
+console.log("Using Mongo URI:", JSON.stringify(uri));
 
 const mongoClient = new MongoClient(uri, {
   serverApi: {
@@ -32,6 +32,7 @@ const mongoClient = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  serverSelectionTimeoutMS: 30000, // 30 seconds timeout
 });
 
 let studentsCollection;
@@ -48,9 +49,9 @@ async function initMongo() {
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
+    process.exit(1); // Exit if connection fails
   }
 }
-initMongo();
 
 // ---------------- ROUTES ----------------
 
@@ -188,7 +189,7 @@ app.put("/api/students/:id", async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
     res.json({ message: "Student updated" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Update failed" });
   }
 });
@@ -207,7 +208,7 @@ app.patch("/api/students/:id", async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
     res.json({ message: "Student updated" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Patch update failed" });
   }
 });
@@ -221,7 +222,7 @@ app.delete("/api/students/:id", async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
     res.json({ message: "Student deleted" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Delete failed" });
   }
 });
@@ -237,7 +238,7 @@ app.post("/api/students/seed", async (req, res) => {
     ];
     await studentsCollection.insertMany(sample);
     res.json({ message: "Database seeded" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Seeding failed" });
   }
 });
@@ -247,7 +248,7 @@ app.delete("/api/students/cleanup", async (req, res) => {
   try {
     await studentsCollection.deleteMany({});
     res.json({ message: "All students deleted" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Cleanup failed" });
   }
 });
@@ -266,7 +267,7 @@ app.post("/api/students/form", async (req, res) => {
       createdAt: new Date(),
     });
     res.redirect("/traditional-forms.html?success=student-added");
-  } catch {
+  } catch (err) {
     res.redirect("/traditional-forms.html?error=database-error");
   }
 });
@@ -288,7 +289,7 @@ app.post("/api/orders", async (req, res) => {
     };
     const result = await ordersCollection.insertOne(order);
     res.json({ _id: result.insertedId, ...order });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Order creation failed" });
   }
 });
@@ -298,7 +299,7 @@ app.get("/api/orders", async (req, res) => {
   try {
     const orders = await ordersCollection.find().toArray();
     res.json(orders);
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Fetching orders failed" });
   }
 });
@@ -312,7 +313,7 @@ app.delete("/api/orders/:id", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
     res.json({ message: "Order deleted" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Delete order failed" });
   }
 });
@@ -333,7 +334,7 @@ app.post("/api/posts", async (req, res) => {
     };
     const result = await postsCollection.insertOne(post);
     res.json({ _id: result.insertedId, ...post });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Create post failed" });
   }
 });
@@ -343,7 +344,7 @@ app.get("/api/posts", async (req, res) => {
   try {
     const posts = await postsCollection.find().toArray();
     res.json(posts);
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Fetching posts failed" });
   }
 });
@@ -357,7 +358,7 @@ app.delete("/api/posts/:id", async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
     res.json({ message: "Post deleted" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Delete post failed" });
   }
 });
@@ -372,7 +373,13 @@ async function startServer() {
     });
   } catch (err) {
     console.error("Failed to start server:", err);
+    process.exit(1);
   }
 }
 
-startServer();
+process.on("SIGTERM", async () => {
+  await mongoClient.close();
+  process.exit(0);
+});
+
+startServer().catch(console.error);
