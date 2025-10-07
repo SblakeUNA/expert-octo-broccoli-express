@@ -364,6 +364,15 @@ app.delete("/api/posts/:id", async (req, res) => {
 
 // ---------------- START SERVER ----------------
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await initMongo();
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+}
+
+startServer();
