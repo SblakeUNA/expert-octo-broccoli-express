@@ -28,15 +28,15 @@ const mongoClient = new MongoClient(uri, {
 
 let studentsCollection;
 let ordersCollection;
-let postsCollection; // Added posts collection for social media posts
+let postsCollection;
 
 async function initMongo() {
   try {
     await mongoClient.connect();
     const db = mongoClient.db("studentDB");
     studentsCollection = db.collection("students");
-    ordersCollection = db.collection("orders"); // Added orders collection
-    postsCollection = db.collection("posts"); // Added posts collection
+    ordersCollection = db.collection("orders");
+    postsCollection = db.collection("posts");
     console.log("✅ Connected to MongoDB and ready.");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err);
@@ -46,7 +46,7 @@ initMongo();
 
 // ---------------- ROUTES ----------------
 
-// Home route - Dunder Mifflin Infinity style
+// Home route
 app.get("/", (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -105,9 +105,8 @@ app.get("/", (req, res) => {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-              <li class="nav-item"><a class="nav-link" href="student-crud.html">📄 Order Paper</a></li>
-              <li class="nav-item"><a class="nav-link" href="advanced-student-manager.html">Advanced Manager</a></li>
-              <li class="nav-item"><a class="nav-link" href="traditional-forms.html">Traditional Forms</a></li>
+              <li class="nav-item"><a class="nav-link" href="student-crud.html">Order Paper</a></li>
+              <li class="nav-item"><a class="nav-link" href="traditional-forms.html">Social Media</a></li>
               <li class="nav-item"><a class="nav-link" href="spencer.html">Contact Us</a></li>
             </ul>
           </div>
@@ -139,7 +138,7 @@ app.get("/spencer", (req, res) => {
 
 // ---------------- STUDENT (Paper) API ----------------
 
-// CREATE
+// CREATE student
 app.post("/api/students", async (req, res) => {
   const { name, age, grade } = req.body;
   if (!name || !age || !grade) {
@@ -158,7 +157,7 @@ app.post("/api/students", async (req, res) => {
   }
 });
 
-// READ
+// READ students
 app.get("/api/students", async (req, res) => {
   try {
     const students = await studentsCollection.find().toArray();
@@ -168,7 +167,7 @@ app.get("/api/students", async (req, res) => {
   }
 });
 
-// UPDATE (PUT)
+// UPDATE (PUT) student
 app.put("/api/students/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -186,7 +185,7 @@ app.put("/api/students/:id", async (req, res) => {
   }
 });
 
-// UPDATE (PATCH)
+// UPDATE (PATCH) student
 app.patch("/api/students/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -205,7 +204,7 @@ app.patch("/api/students/:id", async (req, res) => {
   }
 });
 
-// DELETE
+// DELETE student
 app.delete("/api/students/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -219,7 +218,7 @@ app.delete("/api/students/:id", async (req, res) => {
   }
 });
 
-// SEED
+// SEED students
 app.post("/api/students/seed", async (req, res) => {
   try {
     await studentsCollection.deleteMany({});
@@ -235,7 +234,7 @@ app.post("/api/students/seed", async (req, res) => {
   }
 });
 
-// CLEANUP
+// CLEANUP students
 app.delete("/api/students/cleanup", async (req, res) => {
   try {
     await studentsCollection.deleteMany({});
@@ -245,7 +244,7 @@ app.delete("/api/students/cleanup", async (req, res) => {
   }
 });
 
-// FORM submission
+// FORM submission for students
 app.post("/api/students/form", async (req, res) => {
   const { name, age, grade } = req.body;
   if (!name || !age || !grade) {
@@ -314,15 +313,24 @@ app.put("/api/orders/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { paperType, quantity, salesperson } = req.body;
+
+    // Validate fields before update
+    if (!paperType || !quantity || !salesperson) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const result = await ordersCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { paperType, quantity: Number(quantity), salesperson } }
     );
+
     if (result.matchedCount === 0) {
       return res.status(404).json({ error: "Order not found" });
     }
+
     res.json({ message: "Order updated" });
-  } catch {
+  } catch (err) {
+    console.error("Order update error:", err);
     res.status(500).json({ error: "Update failed" });
   }
 });
@@ -336,7 +344,7 @@ app.delete("/api/orders/:id", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
     res.json({ message: "Order deleted" });
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: "Delete failed" });
   }
 });
@@ -345,12 +353,12 @@ app.delete("/api/orders/:id", async (req, res) => {
 app.post("/api/orders/seed", async (req, res) => {
   try {
     await ordersCollection.deleteMany({});
-    const sample = [
-      { paperType: "Copy Paper", quantity: 500, salesperson: "Michael Scott" },
-      { paperType: "Cardstock", quantity: 100, salesperson: "Dwight Schrute" },
-      { paperType: "Recycled Paper", quantity: 300, salesperson: "Jim Halpert" },
+    const sampleOrders = [
+      { paperType: "Copy Paper", quantity: 100, salesperson: "Jim Halpert" },
+      { paperType: "Cardstock", quantity: 50, salesperson: "Pam Beesly" },
+      { paperType: "Legal Paper", quantity: 30, salesperson: "Dwight Schrute" },
     ];
-    await ordersCollection.insertMany(sample);
+    await ordersCollection.insertMany(sampleOrders);
     res.json({ message: "Orders seeded" });
   } catch {
     res.status(500).json({ error: "Seeding failed" });
@@ -367,77 +375,72 @@ app.delete("/api/orders/cleanup", async (req, res) => {
   }
 });
 
-// FORM submission for orders
-app.post("/api/orders/form", async (req, res) => {
-  const { paperType, quantity, salesperson } = req.body;
-  if (!paperType || !quantity || !salesperson) {
-    return res.redirect("/traditional-forms.html?error=missing-fields");
+// ---------------- POSTS API ----------------
+
+// CREATE post
+app.post("/api/posts", async (req, res) => {
+  const { username, content } = req.body;
+  if (!username || !content) {
+    return res.status(400).json({ error: "Missing username or content" });
   }
   try {
-    await ordersCollection.insertOne({
-      paperType,
-      quantity: Number(quantity),
-      salesperson,
+    const result = await postsCollection.insertOne({
+      username,
+      content,
       createdAt: new Date(),
     });
-    res.redirect("/traditional-forms.html?success=order-added");
+    res.status(201).json({ _id: result.insertedId, username, content });
   } catch {
-    res.redirect("/traditional-forms.html?error=database-error");
+    res.status(500).json({ error: "Failed to create post" });
   }
 });
 
-// ---------------- API for spencer.html ----------------
-
-app.get("/api/spencer", (req, res) => {
-  res.json({ myVar: "This is a message from the API for Spencer." });
-});
-
-// Contact form POST from spencer.html
-app.post('/api/contact', async (req, res) => {
-  const { name, email, message } = req.body;
-  if (!name || !email || !message) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  // Here you could store this info in DB or send email...
-
-  console.log(`Contact form submitted by ${name} (${email}): ${message}`);
-
-  res.json({ message: 'Message received! Kelly will get back to you soon.' });
-});
-
-// ---------------- SOCIAL MEDIA POSTS API ----------------
-
-// Get all posts sorted by createdAt descending
+// READ all posts
 app.get("/api/posts", async (req, res) => {
   try {
     const posts = await postsCollection.find().sort({ createdAt: -1 }).toArray();
     res.json(posts);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch posts" });
   }
 });
 
-// Create a new post
-app.post("/api/posts", async (req, res) => {
-  const { author, content, date } = req.body;
-  if (!author || !content) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
+// UPDATE post
+app.put("/api/posts/:id", async (req, res) => {
   try {
-    const newPost = {
-      author,
-      content,
-      createdAt: date ? new Date(date) : new Date(),
-    };
-    const result = await postsCollection.insertOne(newPost);
-    res.status(201).json({ _id: result.insertedId, ...newPost });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to create post" });
+    const { id } = req.params;
+    const { username, content } = req.body;
+    if (!username || !content) {
+      return res.status(400).json({ error: "Missing username or content" });
+    }
+    const result = await postsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { username, content } }
+    );
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+    res.json({ message: "Post updated" });
+  } catch {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
+// DELETE post
+app.delete("/api/posts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+    res.json({ message: "Post deleted" });
+  } catch {
+    res.status(500).json({ error: "Delete failed" });
   }
 });
 
 // ---------------- START SERVER ----------------
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
