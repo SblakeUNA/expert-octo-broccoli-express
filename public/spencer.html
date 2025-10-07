@@ -81,6 +81,13 @@
       color: #00529b;
       font-weight: bold;
     }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
   </style>
 </head>
 
@@ -109,6 +116,10 @@
     <div id="response" class="response-message"></div>
   </div>
 
+  <footer>
+    Last updated: October 07, 2025, 04:54 PM CDT
+  </footer>
+
   <script>
     const form = document.getElementById('contactForm');
     const responseDiv = document.getElementById('response');
@@ -136,8 +147,13 @@
         });
 
         if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to send message.');
+          const text = await res.text(); // Get raw response
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.error || 'Failed to send message.');
+          } catch {
+            throw new Error('Server error. Please try again later.');
+          }
         }
 
         const data = await res.json();
